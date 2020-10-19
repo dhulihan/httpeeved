@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"io/ioutil"
 
 	"github.com/dhulihan/httpeeved/internal/selection"
 	"github.com/gin-gonic/gin"
@@ -12,7 +13,7 @@ import (
 type Opts struct {
 	Verbose []bool `short:"v" long:"verbose" description:"Show verbose debug information: -v for debug, -vv for trace."`
 
-	Addr string `short:"a" long:"addr" description:"Address to bind too" default:":8080"`
+	Addr string `short:"a" long:"addr" description:"Bind address (eg: 0.0.0.0:80)" default:":8080"`
 
 	Codes []int `short:"c" long:"codes" default:"200" default:"206" default:"400" default:"404" default:"500" default:"502" description:"Repsonse status codes. Can be specified many times."`
 
@@ -60,15 +61,27 @@ func main() {
 	r.GET("/", codeHandler)
 	r.HEAD("/", codeHandler)
 	r.PUT("/", codeHandler)
+	r.POST("/", codeHandler)
 	r.PATCH("/", codeHandler)
 	r.DELETE("/", codeHandler)
-	r.Run(opts.Addr) // listen and serve on 0.0.0.0:8080 (for windows "localhost:8080")
+	r.Run(opts.Addr)
 }
 
 func codeHandler(c *gin.Context) {
 	code := sel.Code()
 	log.WithField("code", code).Debug("generated code")
+
+	b, err := ioutil.ReadAll(c.Request.Body)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// request body
+	reqBody := string(b)
+	log.Debug(reqBody)
+
 	c.JSON(code, gin.H{
-		"message": fmt.Sprintf("%d", code),
+		"code": fmt.Sprintf("%d", code),
+		"body": reqBody,
 	})
 }
