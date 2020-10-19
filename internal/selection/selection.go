@@ -53,5 +53,6 @@ func NewRandomSelectionStrategy(r []int) *RandomSelectionStrategy {
 }
 
 func (s *RandomSelectionStrategy) Code() int {
-	return s.responses[s.rando.Intn(len(s.responses))]
+	index := s.rando.Intn(len(s.responses) - 1)
+	return s.responses[index]
 }
