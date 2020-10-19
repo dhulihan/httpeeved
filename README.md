@@ -2,10 +2,49 @@
 
 A simple, configurable mock webserver that cycles through good or bad responses.
 
-## Installation
+## Install
 
 ```sh
 go get -u github.com/dhulihan/httpeeved
+```
+
+## Getting Started
+
+Run this:
+
+```
+$ httpeeved
+```
+
+Then, in a separate shell, run this:
+
+```sh
+$ curl -I localhost:8080
+HTTP/1.1 200 OK
+
+$ curl -I localhost:8080
+HTTP/1.1 400 Bad Request
+
+$ curl -I localhost:8080
+HTTP/1.1 404 Not Found
+
+$ curl -i -X PUT localhost:8080 -d '{ "foo": "bar"}'
+HTTP/1.1 502 Bad Gateway
+Content-Type: application/json; charset=utf-8
+Date: Mon, 19 Oct 2020 23:25:09 GMT
+Content-Length: 58
+
+{"body":"{ \"foo\": \"bar\"}","code":"502","method":"PUT"}%
+```
+
+## Examples
+
+```sh
+# default configuration: round robin between several response codes (200, 206, 400, 404, 500, 502)
+httpeeved
+
+# round robin between 200 and 502 responses
+httpeeved --codes=200 --codes=502 --selection-strategy=round-robin
 ```
 
 ## Usage
@@ -24,26 +63,3 @@ Help Options:
   -h, --help                                    Show this help message
 ```
 
-## Examples
-
-in one shell/terminal:
-
-```
-$ httpeeved
-```
-
-in a separate shell
-
-```sh
-$ curl -I localhost:8080
-HTTP/1.1 200 OK
-
-$ curl -I localhost:8080
-HTTP/1.1 400 Bad Request
-
-$ curl -I localhost:8080
-HTTP/1.1 404 Not Found
-
-$ curl -I localhost:8080
-HTTP/1.1 502 Bad Gateway
-```

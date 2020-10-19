@@ -58,12 +58,9 @@ func main() {
 
 	r := gin.Default()
 
-	r.GET("/", codeHandler)
-	r.HEAD("/", codeHandler)
-	r.PUT("/", codeHandler)
-	r.POST("/", codeHandler)
-	r.PATCH("/", codeHandler)
-	r.DELETE("/", codeHandler)
+	// catch EVERYTHING
+	r.NoRoute(codeHandler)
+
 	r.Run(opts.Addr)
 }
 
@@ -76,12 +73,18 @@ func codeHandler(c *gin.Context) {
 		log.Fatal(err)
 	}
 
+	h := gin.H{
+		"code":   fmt.Sprintf("%d", code),
+		"method": c.Request.Method,
+		"url":    c.Request.URL.String(),
+	}
+
 	// request body
 	reqBody := string(b)
-	log.Debug(reqBody)
+	if reqBody != "" {
+		log.Debug(reqBody)
+		h["body"] = reqBody
+	}
 
-	c.JSON(code, gin.H{
-		"code": fmt.Sprintf("%d", code),
-		"body": reqBody,
-	})
+	c.JSON(code, h)
 }
