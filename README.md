@@ -1,6 +1,8 @@
 # httpeeved
 
-A simple, configurable mock webserver that cycles through good or bad responses.
+:angry: Make your HTTP clients angry. 
+
+httpeeved is a simple, configurable mock webserver that cycles through good or bad responses.
 
 ## Install
 
