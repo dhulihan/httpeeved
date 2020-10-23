@@ -1,6 +1,8 @@
 # httpeeved
 
-:angry: Make your HTTP clients angry. 
+
+*Make your HTTP clients angry.*
+
 
 httpeeved is a simple, configurable mock webserver that cycles through good or bad responses.
 
@@ -56,10 +58,9 @@ httpeeved [OPTIONS]
 
 Application Options:
   -v, --verbose                                 Show verbose debug information: -v for debug, -vv for trace.
-  -a, --addr=                                   Address to bind too (default: :8080)
+  -a, --addr=                                   webserver bind address (default: :8080)
   -c, --codes=                                  Repsonse status codes. Can be specified many times. (default: 200, 206, 400, 404, 500, 502)
   -s, --selection-strategy=[round-robin|random] response code selection strategy (default: round-robin)
-  -r, --responses=                              use this to set a custom response message
 
 Help Options:
   -h, --help                                    Show this help message
