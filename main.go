@@ -3,8 +3,10 @@ package main
 import (
 	"fmt"
 	"io/ioutil"
+	"net/http"
 
 	"github.com/dhulihan/httpeeved/internal/selection"
+	"github.com/elazarl/goproxy"
 	"github.com/gin-gonic/gin"
 	"github.com/jessevdk/go-flags"
 	log "github.com/sirupsen/logrus"
@@ -20,6 +22,8 @@ type Opts struct {
 	SelectionStrategy string `short:"s" long:"selection-strategy" default:"round-robin" choice:"round-robin" choice:"random" description:"response code selection strategy"`
 
 	Responses map[int]string `short:"r" long:"responses" description:"use this to set a custom response message"`
+
+	Proxy bool `short:"x" long:"proxy" description:"Run as proxy. httpeeved will forward requests to destination and modify the response."`
 }
 
 var (
@@ -54,6 +58,34 @@ func main() {
 	default:
 		log.Info("using round-robin selection strategy")
 		sel = selection.NewRoundRobinSelectionStrategy(opts.Codes)
+	}
+
+	// run in proxy mode
+	if opts.Proxy {
+		log.Info("running in proxy mode")
+		proxy := goproxy.NewProxyHttpServer()
+		proxy.Verbose = len(opts.Verbose) > 0
+
+		respCond := goproxy.RespConditionFunc(func(resp *http.Response, ctx *goproxy.ProxyCtx) bool {
+			return true
+		})
+
+		proxy.OnResponse(respCond).DoFunc(func(r *http.Response, ctx *goproxy.ProxyCtx) *http.Response {
+			origStatus := r.StatusCode
+			newStatus := sel.Code()
+			log.WithFields(log.Fields{
+				"method":      ctx.Req.Method,
+				"url":         ctx.Req.URL.String(),
+				"origCode":    origStatus,
+				"spoofedCode": newStatus,
+			}).Info("backend request completed")
+			r.StatusCode = newStatus
+			return r
+		})
+
+		// TODO: hook this up to gin's RunListener
+		log.Fatal(http.ListenAndServe(opts.Addr, proxy))
+		return
 	}
 
 	r := gin.Default()
