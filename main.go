@@ -97,7 +97,14 @@ func main() {
 }
 
 func codeHandler(c *gin.Context) {
-	log.WithField("", "").Debug("processing request")
+	code := sel.Code()
+	log.WithField("code", code).Debug("generated code")
+
+	resp := gin.H{
+		"code":   fmt.Sprintf("%d", code),
+		"method": c.Request.Method,
+		"url":    c.Request.URL.String(),
+	}
 
 	// form data
 	err := c.Request.ParseForm()
@@ -105,25 +112,20 @@ func codeHandler(c *gin.Context) {
 		log.Trace(err.Error())
 	}
 
-	for k, values := range c.Request.PostForm {
-		for _, v := range values {
-			log.WithField(k, v).Debug("form value")
+	if len(c.Request.PostForm) > 0 {
+		for k, values := range c.Request.PostForm {
+			for _, v := range values {
+				log.WithField(k, v).Debug("form value")
+			}
 		}
+
+		resp["form"] = c.Request.PostForm
 	}
 
 	// request body
 	b, err := ioutil.ReadAll(c.Request.Body)
 	if err != nil {
 		log.Fatal(err)
-	}
-
-	code := sel.Code()
-	log.WithField("code", code).Info("generated code")
-
-	resp := gin.H{
-		"code":   fmt.Sprintf("%d", code),
-		"method": c.Request.Method,
-		"url":    c.Request.URL.String(),
 	}
 
 	// request body
