@@ -54,6 +54,29 @@ go get -u github.com/dhulihan/httpeeved
 	```sh
 	httpeeved --codes=200 --codes=301 --codes=500 --selection-strategy=random
 	```
+* Inspect a request containing `multipart/form-data`
+	```sh
+	curl --location --request POST 'localhost:8000/foo' \
+		--form 'some-file=@"foo.txt"' \
+		--form 'foo="bar"' \
+		--form 'foo="baz"' | jq .
+
+	{
+	  "Code": "200",
+	  "Content-Type": "multipart/form-data; boundary=------------------------c58c7266e69ad9f9",
+	  "Method": "POST",
+	  "URL": "/foo",
+	  "form": {
+	    "foo": [
+	      "bar",
+	      "baz"
+	    ]
+	  },
+	  "multipart-form-file-some-file-0": "foo.txt map[Content-Disposition:[form-data; name=\"some-file\"; filename=\"foo.txt\"] Content-Type:[text/plain]] 4",
+	  "multipart-form-value-foo-0": "bar",
+	  "multipart-form-value-foo-1": "baz"
+	}
+	```
 * Run as proxy, which makes legit requests to a destination and modifies response status code
 	```sh
 	httpeeved -x
