@@ -20,15 +20,14 @@ func MultipartForm(c *gin.Context, resp gin.H) {
 	}
 
 	if c.Request.MultipartForm != nil {
-		resp["multipart"] = c.Request.MultipartForm.Value
 		log.Debug("multipart detected")
 		if len(c.Request.MultipartForm.Value) > 0 {
 			for k, values := range c.Request.MultipartForm.Value {
-				for _, v := range values {
+				for i, v := range values {
 					log.WithField(k, v).Debug("multipart form value")
+					resp[fmt.Sprintf("multipart-form-value-%s-%d", k, i)] = v
 				}
 			}
-
 		}
 
 		if len(c.Request.MultipartForm.File) > 0 {
