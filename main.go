@@ -3,9 +3,9 @@ package main
 import (
 	"fmt"
 	"io/ioutil"
-	"mime/multipart"
 	"net/http"
 
+	"github.com/dhulihan/httpeeved/internal/inspect"
 	"github.com/dhulihan/httpeeved/internal/selection"
 	"github.com/elazarl/goproxy"
 	"github.com/gin-gonic/gin"
@@ -26,10 +26,6 @@ type Opts struct {
 
 	Proxy bool `short:"x" long:"proxy" description:"Run as proxy. httpeeved will forward requests to destination and modify the response."`
 }
-
-const (
-	MAX_UPLOAD_SIZE = 5 * 1024 * 1024 * 1024
-)
 
 var (
 	sel selection.SelectionStrategy
@@ -112,54 +108,8 @@ func codeHandler(c *gin.Context) {
 		"Content-Type": c.Request.Header.Get("Content-Type"),
 	}
 
-	// handle multi-part form
-	err := c.Request.ParseMultipartForm(MAX_UPLOAD_SIZE)
-	if err != nil {
-		log.Trace(err.Error())
-	}
-
-	if c.Request.MultipartForm != nil {
-		resp["multipart"] = c.Request.MultipartForm.Value
-		log.Debug("multipart detected")
-		if len(c.Request.MultipartForm.Value) > 0 {
-			for k, values := range c.Request.MultipartForm.Value {
-				for _, v := range values {
-					log.WithField(k, v).Debug("multipart form value")
-				}
-			}
-
-		}
-
-		if len(c.Request.MultipartForm.File) > 0 {
-			for k, values := range c.Request.MultipartForm.File {
-				for i, v := range values {
-					log.WithFields(log.Fields{
-						"key":     k,
-						"i":       i,
-						"summary": multipartFileSummary(v),
-					}).Debug("multipart file detected")
-					resp[fmt.Sprintf("multipart-form-file-%s-%d", k, i)] = multipartFileSummary(v)
-				}
-			}
-
-		}
-	}
-
-	// form data
-	err = c.Request.ParseForm()
-	if err != nil {
-		log.Trace(err.Error())
-	}
-
-	if len(c.Request.PostForm) > 0 {
-		for k, values := range c.Request.PostForm {
-			for _, v := range values {
-				log.WithField(k, v).Debug("form value")
-			}
-		}
-
-		resp["form"] = c.Request.PostForm
-	}
+	inspect.MultipartForm(c, resp)
+	inspect.PostForm(c, resp)
 
 	// request body
 	b, err := ioutil.ReadAll(c.Request.Body)
@@ -175,8 +125,4 @@ func codeHandler(c *gin.Context) {
 	}
 
 	c.JSON(code, resp)
-}
-
-func multipartFileSummary(fh *multipart.FileHeader) string {
-	return fmt.Sprintf("%s %s %d", fh.Filename, fh.Header, fh.Size)
 }
