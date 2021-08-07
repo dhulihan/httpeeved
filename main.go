@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"net/http"
 
+	"github.com/dhulihan/httpeeved/internal/inspect"
 	"github.com/dhulihan/httpeeved/internal/selection"
 	"github.com/elazarl/goproxy"
 	"github.com/gin-gonic/gin"
@@ -74,10 +75,10 @@ func main() {
 			origStatus := r.StatusCode
 			newStatus := sel.Code()
 			log.WithFields(log.Fields{
-				"method":      ctx.Req.Method,
-				"url":         ctx.Req.URL.String(),
-				"origCode":    origStatus,
-				"spoofedCode": newStatus,
+				"Method":       ctx.Req.Method,
+				"URL":          ctx.Req.URL.String(),
+				"UpstreamCode": origStatus,
+				"ResponseCode": newStatus,
 			}).Info("backend request completed")
 			r.StatusCode = newStatus
 			return r
@@ -101,26 +102,14 @@ func codeHandler(c *gin.Context) {
 	log.WithField("code", code).Debug("generated code")
 
 	resp := gin.H{
-		"code":   fmt.Sprintf("%d", code),
-		"method": c.Request.Method,
-		"url":    c.Request.URL.String(),
+		"Code":         fmt.Sprintf("%d", code),
+		"Method":       c.Request.Method,
+		"URL":          c.Request.URL.String(),
+		"Content-Type": c.Request.Header.Get("Content-Type"),
 	}
 
-	// form data
-	err := c.Request.ParseForm()
-	if err != nil {
-		log.Trace(err.Error())
-	}
-
-	if len(c.Request.PostForm) > 0 {
-		for k, values := range c.Request.PostForm {
-			for _, v := range values {
-				log.WithField(k, v).Debug("form value")
-			}
-		}
-
-		resp["form"] = c.Request.PostForm
-	}
+	inspect.MultipartForm(c, resp)
+	inspect.PostForm(c, resp)
 
 	// request body
 	b, err := ioutil.ReadAll(c.Request.Body)
