@@ -1,6 +1,6 @@
 # httpeeved
 
-A simple, configurable mock webserver that cycles through good or bad response codes.
+A simple fake webserver that cycles through good or bad response codes.
 
 *Make your HTTP clients angry.*
 
@@ -8,10 +8,10 @@ A simple, configurable mock webserver that cycles through good or bad response c
 
 ```
 -v, --verbose                                 Show verbose debug information: -v for debug, -vv for trace.
--a, --addr=                                   Address to bind too (default: :8080)
--c, --codes=                                  Repsonse status codes. Can be specified many times. (default: 200, 202, 206, 400, 401, 403, 404, 409, 500, 502)
+-a, --addr <addr>                             Address to bind to (default: :8080)
+-c, --codes <code>[, <code>, ...]             Repsonse status codes. Can be specified many times. (default: 200, 202, 206, 400, 401, 403, 404, 409, 500, 502)
 -s, --selection-strategy=[round-robin|random] response code selection strategy (default: round-robin)
--r, --responses=                              use this to set a custom response message
+-r, --responses <msg>                         Use this to set a custom response message
 -x, --proxy                                   Run as proxy. This will forward requests to destination and modify the status code of the original response.
 ```
 
